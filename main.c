@@ -10,9 +10,9 @@
 #include    <string.h>
 
 #define ITERATIONQUANTITY 10
-#define RESULTSDIRPATH  "resultaten\\"
-#define SOURCEFILEPATH "resultaten\\varianten.txt"
-#define PROCESSEDFILEPATH "resultaten\\processedfile.txt"
+#define RESULTSDIRPATH  "sources\\"
+#define SOURCEFILEPATH "sources\\varianten.txt"
+#define PROCESSEDFILEPATH "sources\\processedfile.txt"
 #define TIMEPERIODQUANTITY 8
 #define MAXFILEQUANTITY 600
 
