@@ -6,6 +6,6 @@ It is written for a certain situation.
 Example of index and a file are included.
 
 #TO-DO
--Improve the program's flexibility, e.g. by auto-detecting the amount of iterations\n
--Preferences\n
--Logfile\n
+-Improve the program's flexibility, e.g. by auto-detecting the amount of iterations\r\n
+-Preferences\r\n
+-Logfile\r\n
