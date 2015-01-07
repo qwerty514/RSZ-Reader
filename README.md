@@ -1,4 +1,4 @@
-# RSZ-Reader
+#RSZ-Reader
 C-program which reads multiple RSZ-files, organizes the data, and writes it in an outputfile.
 The program gets filenames from an index file.
 The program will look for 10 interations of a run.
