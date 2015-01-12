@@ -8,12 +8,13 @@
 #include    <stdio.h>
 #include    <stdlib.h>
 #include    <string.h>
+#include    <unistd.h>
 
-#define ITERATIONQUANTITY 10
+#define MAXITERATIONQUANTITY 99
 #define RESULTSDIRPATH  "sources\\"
 #define SOURCEFILEPATH "sources\\varianten.txt"
 #define PROCESSEDFILEPATH "sources\\processedfile.txt"
-#define TIMEPERIODQUANTITY 8
+#define MAXTIMEPERIODQUANTITY 60
 #define MAXFILEQUANTITY 600
 
 #define TRUE 1
@@ -43,6 +44,7 @@ int filequantity;
 
 FILE *resultsfile;
 FILE *processedfile;
+FILE *sourcelist;
 
 int ProcessData()
 {
@@ -50,14 +52,16 @@ int ProcessData()
     char buffer[100];
     int i;
     char c;
-    char smallbuffer[4];
+    char smallbuffer[6];
 
     int routequantity=0;
+
 
     //Skip 8 rows.
     for(i=0; i<8; i++)
     {
-        fgets(buffer, 100, resultsfile);
+        c='\0';
+        while(c!='\n') fscanf(resultsfile, "%c", &c);
     }
     
     //Init routequantity
@@ -74,8 +78,7 @@ int ProcessData()
             break;
         }
     }
-    printf("Routequantity = %d", routequantity);
-    //exit(0);
+    printf("Routequantity = %d\n", routequantity);
     //Skip 2 rows
     for(i=0; i<2; i++)
     {
@@ -85,14 +88,12 @@ int ProcessData()
 
     fscanf(resultsfile, " No.:;");
     
-    
-    
     //Create vars
-    struct datum data[routequantity][TIMEPERIODQUANTITY];
+    struct datum data[routequantity][MAXTIMEPERIODQUANTITY];
     int routecount;
     int timeperiodcount;
     int routenumber[routequantity];
-    int timeperiodnumber[TIMEPERIODQUANTITY];
+    int timeperiodnumber[MAXTIMEPERIODQUANTITY];
 
     //Init routenumbers
     printf("Initializing Routes...\n");
@@ -104,25 +105,27 @@ int ProcessData()
     
     printf("Routes initialized.\n");
     
-    for(timeperiodcount=0; timeperiodcount<TIMEPERIODQUANTITY; timeperiodcount++)
+    for(timeperiodcount=0; timeperiodcount<MAXTIMEPERIODQUANTITY; timeperiodcount++)
     {
         fscanf(resultsfile, "%*[ \r\n]%d;", &(timeperiodnumber[timeperiodcount]));
         for(routecount=0; routecount<routequantity; routecount++)
         {
-            fscanf(resultsfile, " %f;", &((data[routecount][timeperiodcount]).traveltime));
-            fscanf(resultsfile, " %d;", &((data[routecount][timeperiodcount]).volume));
+            eoferror = fscanf(resultsfile, " %f;", &((data[routecount][timeperiodcount]).traveltime));
+            if(eoferror==EOF) break;
+            eoferror = fscanf(resultsfile, " %d;", &((data[routecount][timeperiodcount]).volume));
+            if(eoferror==EOF) break;
             
             fprintf(processedfile,"%-20s",FileNames[filecount].filename);
             fprintf(processedfile,"%-20s",FileNames[filecount].period);
             fprintf(processedfile,"%-20s",FileNames[filecount].traffic);
-            fprintf(processedfile,"%02d        ",iteration);
+            fprintf(processedfile,"%02d%8s",iteration,"");
             fprintf(processedfile,"%-10d",timeperiodnumber[timeperiodcount]);
             fprintf(processedfile,"%-20d",routenumber[routecount]);
             fprintf(processedfile,"%-10.1f",data[routecount][timeperiodcount].traveltime);
             fprintf(processedfile,"%-10d\r\n",data[routecount][timeperiodcount].volume);
 
         }
-        
+        if(eoferror==EOF) break;
     }
         
     return 0;
@@ -132,7 +135,6 @@ int main()
 {
     int i;
     //Het openen van het indexbestand
-    FILE *sourcelist;
     printf("Opening " SOURCEFILEPATH "...\n");
     sourcelist = fopen(SOURCEFILEPATH, "r");
     if(sourcelist == NULL)
@@ -146,27 +148,6 @@ int main()
     {
         printf("File opened!\n");  
     }
-     
-/*
-    //Hoeveelheid bestanden detecteren door index uit te lezen
-    printf("Scanning " SOURCEFILEPATH "...\n");  
-    char c = '\0';
-    while(c!='\n') fscanf(f, "%c", &c);
-    i=0;
-    while(eoferror != EOF)
-    {
-        eoferror = fscanf(sourcelist, " %*s");
-        eoferror = fscanf(sourcelist, " %*s");
-        eoferror = fscanf(sourcelist, " %*s");
-        if(eoferror == EOF){break;}
-        i++;
-    }
-    
-    //Uitkomst verwerken, alles klaarmaken voor opnieuw inlezen
-    filequantity=i;
-    struct file FileNames[filequantity];
-    rewind(sourcelist);
-*/
     
     //Bestandsnamen en -eigenschappen initialiseren door index te lezen
     char c = '\0';
@@ -209,15 +190,17 @@ int main()
     char temppath[100];
     for(filecount=0; filecount<filequantity; filecount++)
     {
-        for(iteration=1; iteration<=ITERATIONQUANTITY; iteration++)
+        for(iteration=1; iteration<=MAXITERATIONQUANTITY; iteration++)
         {
             sprintf(temppath, RESULTSDIRPATH "%s""_""%02d"".rsz", FileNames[filecount].filename, iteration);
             printf("Opening %s...\n", temppath);
             resultsfile = fopen(temppath, "r");
+            usleep(100000);
             if(resultsfile == NULL)
             {
                 printf("Could not open file,\n"
                         "%s not opened.\n", temppath);
+                break;
             }
             else
             {
